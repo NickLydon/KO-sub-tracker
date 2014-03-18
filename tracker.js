@@ -1,6 +1,7 @@
-function tracker(o) {
+function tracker(viewModel) {
 	var observables = [],
-		walkTheGraph = function(o) {
+		currentlyTracking = false,
+		walkTheGraph = function(o, formPropertyName) {
 			
 		var visited = '__ko__sub_tracker__';
 			
@@ -8,13 +9,14 @@ function tracker(o) {
 				if (o.hasOwnProperty(i) && o[i] && ko.isObservable(o[i])) {
 			
 					var subscriberToken = {
-						observable: o[i],
-						name: i.toString(),
+						name: formPropertyName(i),
 						count: 0
 					};
 						 
-					subscriberToken.observable.subscribe(function() {
-						subscriberToken.count++;
+					o[i].subscribe(function() {
+						if(currentlyTracking) {
+							subscriberToken.count++;
+						}
 					});
 				
 					observables.push(subscriberToken);
@@ -23,18 +25,26 @@ function tracker(o) {
 				}
 
 				if(!o[i][visited]) {
-					walkTheGraph(o[i]);
+					walkTheGraph(o[i], function(parentProperty) { return i + '.' + parentProperty; });
 				}
 
 			}
+			
+			o[visited] = true;
 	
 		};
 		
-	walkTheGraph(o);
+	walkTheGraph(viewModel, function identity(propertyName) { return propertyName; });
 	
 	return {
 		getCount: function() {
 			return observables;
+		},
+		start: function() {
+			currentlyTracking = true;
+		},
+		stop: function() {
+			currentlyTracking = false;
 		}
 	};
 }

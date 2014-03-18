@@ -1,5 +1,14 @@
+function getSut(o) {
+	var sut = tracker(o);
+
+	sut.start();
+	
+	return sut;
+}
+
+
 test('should start at 0', function() {
-	var sut = tracker({
+	var sut = getSut({
 		
 	});
 
@@ -8,18 +17,32 @@ test('should start at 0', function() {
 
 test('should track observables', function() {
 	var o = { o: ko.observable() },
-		sut = tracker(o);
+		sut = getSut(o);
 	 
 	o.o.notifySubscribers("");
 	
 	equal(1, sut.getCount()[0].count);
 });
 
+test('should handle circular references', function() {
+	var o = { o: ko.observable() },
+		sut;
+
+	o.o.o = o.o;	
+		
+	sut = getSut(o);
+	 
+	o.o.notifySubscribers("");
+	o.o.o.notifySubscribers("");
+	
+	equal(1, sut.getCount().length, 'should only count observable once');
+	equal(2, sut.getCount()[0].count);
+});
 
 test('should track observables multiple times', function() {
 	var o = { o: ko.observable() },
 		times = 3,
-		sut = tracker(o), 
+		sut = getSut(o), 
 		i = 0;
 	 
 	for(; i < times; i++) {
@@ -30,10 +53,11 @@ test('should track observables multiple times', function() {
 });
 
 test('should track computeds', function() {
-	var o = { o: ko.computed(function() { return 0; }) },
-		sut = tracker(o);
-	 
-	o.o.notifySubscribers("");
+	var obs = ko.observable(false);
+		o = { o: ko.computed(function() { return obs(); }) },
+		sut = getSut(o);
+	 	
+	obs(!obs());
 	
 	equal(1, sut.getCount()[0].count);
 });
@@ -45,11 +69,11 @@ test('should give names of observables', function() {
 	 
 	o[name] = ko.observable();
 	
-	sut = tracker(o);
+	sut = getSut(o);
 	
 	o[name].notifySubscribers("");
 	
-	equal(name, sut.getCount()[0].name);
+	equal(sut.getCount()[0].name, name);
 });
 
 test('should track nested observables', function() {
@@ -58,10 +82,46 @@ test('should track nested observables', function() {
 			third: ko.observable() 
 		} 
 	},
-		sut = tracker(first);
+		sut = getSut(first);
 	
 	first.second.third.notifySubscribers("");
 	
-	equal(sut.getCount()[0].name, 'third');
+	equal(sut.getCount()[0].name, 'second.third');
 	equal(sut.getCount()[0].count, 1);
+});
+
+test('should track deep nested observables ', function() {
+	var deep = 10000000,
+		sut,
+		i = 0,
+		currentO = {};
+		
+		for(; i < deep; i++) {
+			currentO.o = {};
+			currentO = currentO.o;
+		}
+		
+		currentO.o = ko.observable();
+		
+		sut = getSut(currentO);
+	
+	currentO.o.notifySubscribers("");
+	
+	equal(sut.getCount()[0].name, 'o');
+	equal(sut.getCount()[0].count, 1);
+});
+
+test('should not track changes when stopped', function() {
+	var o = { o: ko.observable() },
+		sut = getSut(o),
+		notifyShouldCount1 = function() {		
+			o.o.notifySubscribers("");
+			equal(sut.getCount()[0].count, 1);			
+		};		
+	
+	notifyShouldCount1();
+	
+	sut.stop();
+	
+	notifyShouldCount1();
 });
