@@ -1,50 +1,73 @@
 function tracker(viewModel) {
 	var observables = [],
+		maxDepth = 1000,
+		currentDepth = 0,
 		currentlyTracking = false,
-		walkTheGraph = function(o, formPropertyName) {
-			
-		var visited = '__ko__sub_tracker__';
-			
-			for(var i in o) {
-				if (o.hasOwnProperty(i) && o[i] && ko.isObservable(o[i])) {
-			
-					var subscriberToken = {
-						name: formPropertyName(i),
-						count: 0
-					};
-						 
-					o[i].subscribe(function() {
-						if(currentlyTracking) {
-							subscriberToken.count++;
+		walkTheGraph = function (o, formPropertyName) {
+
+			var visited = '__ko__sub_tracker__';
+
+			if (currentDepth < maxDepth) {
+				currentDepth++;
+
+				for (var i in o) {
+					if (o.hasOwnProperty(i) && o[i] && ko.isObservable(o[i])) {
+
+						var subscriberToken = {
+							name: formPropertyName(i),
+							count: 0
+						},
+							latestObservableValue = o[i]();
+
+						o[i].subscribe(function () {
+							if (currentlyTracking) {
+								subscriberToken.count++;
+							}
+						});
+
+						observables.push(subscriberToken);
+
+						o[i][visited] = true;
+
+						if (latestObservableValue && !latestObservableValue[visited]) {
+							walkTheGraph(latestObservableValue, function (childProperty) { return formPropertyName(i) + '().' + childProperty; });
+							latestObservableValue[visited] = true;
 						}
-					});
-				
-					observables.push(subscriberToken);
-					
-					o[i][visited] = true;
+					}
+
+					if (!o[i][visited]) {
+						walkTheGraph(o[i], function (childProperty) { return formPropertyName(i) + '.' + childProperty; });
+					}
+
 				}
 
-				if(!o[i][visited]) {
-					walkTheGraph(o[i], function(parentProperty) { return i + '.' + parentProperty; });
-				}
-
+				o[visited] = true;
 			}
 			
-			o[visited] = true;
-	
-		};
-		
-	walkTheGraph(viewModel, function identity(propertyName) { return propertyName; });
-	
-	return {
-		getCount: function() {
-			return observables;
+			currentDepth--;
 		},
-		start: function() {
+		orderBy = function(getProperty) {
+			return function(a,b) {
+				if (getProperty(a) > getProperty(b)) return -1;
+				if (getProperty(a) < getProperty(b)) return 1;
+				return 0;
+			};
+		};
+
+
+	walkTheGraph(viewModel, function identity(childProperty) { return childProperty; });
+
+	return {
+		getCount: function (order) {
+			return observables.sort(order || this.orderByCount);
+		},
+		start: function () {
 			currentlyTracking = true;
 		},
-		stop: function() {
+		stop: function () {
 			currentlyTracking = false;
-		}
+		},
+		orderByCount: orderBy(function(a) { return a.count; }),
+		orderByName: orderBy(function(a) { return a.name; })
 	};
 }

@@ -107,7 +107,6 @@ test('should track deep nested observables ', function() {
 	
 	currentO.o.notifySubscribers("");
 	
-	equal(sut.getCount()[0].name, 'o');
 	equal(sut.getCount()[0].count, 1);
 });
 
