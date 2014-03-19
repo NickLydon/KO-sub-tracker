@@ -1,5 +1,16 @@
+
 function getSut(o) {
-	var sut = tracker(o);
+	var sut = ko_dependencies(function() { 
+		
+	})(o);
+
+	sut.start();
+	
+	return sut;
+}
+
+function getSutWithReporting(o, reporting) {
+	var sut = ko_dependencies(reporting)(o);
 
 	sut.start();
 	
@@ -123,4 +134,47 @@ test('should not track changes when stopped', function() {
 	sut.stop();
 	
 	notifyShouldCount1();
+});
+
+test('should access observable object properties', function() {
+	var o = { o: ko.observable({ internal: ko.observable() }) },
+		sut = getSut(o);
+		
+		o.o().internal.notifySubscribers('');
+		
+	equal(sut.getCount().length, 2);		
+	equal(sut.getCount()[0].name, 'o().internal');
+	equal(sut.getCount()[0].count, 1);
+});
+
+test('should report results when stop is called', function() {
+	var o = { o: ko.observable({ internal: ko.observable() }) },
+		sut = getSutWithReporting(o, function(report) {
+			
+			equal(report.length, 2);		
+			equal(report[0].name, 'o().internal');
+			equal(report[0].count, 1);
+		});
+		
+		o.o().internal.notifySubscribers('');
+		
+		sut.stop();		
+});
+
+test('should try to report results until successful', function() {
+	var o = { o: ko.observable({ internal: ko.observable() }) },
+		calledReport = 0,
+		expected = 3;
+		sut = getSutWithReporting(o, function(report, success, failure) {
+			calledReport++;
+			if(calledReport < expected) {
+				failure();
+			} else {
+				success();
+			}
+		});
+				
+		sut.stop();		
+		
+		equal(calledReport, expected);
 });
