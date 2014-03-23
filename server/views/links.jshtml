@@ -1,0 +1,13 @@
+<html>
+	<head>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> 
+	</head>
+	<body>
+		<h1>Click the links to view previously captured sessions</h1>
+		<ul>
+		@for(var i = 0; i < locals.data.length; i++) {
+				<li><a href="@locals.data[i]">@locals.data[i]</a></li>
+		}
+		<ul>
+	</body>	
+</html>
