@@ -57,51 +57,21 @@ app.set('view engine', 'jshtml');
 app.engine('jshtml', require('jshtml-express'));
 app.use('/javascript', express.static(__dirname + '/javascript'));
 
-app.get('/', function(req, res){
-	var labels = _.range(0, results.length),
-		datasets = (function() {
-			var flattened = _.flatten(results);
-			var nameGroups = _.groupBy(flattened, 'name');
-			var keys = _.keys(nameGroups);
-			var totalColours = 256;
+app.get('/', function(req, res){	
+	var mappedresults = 
+		_.map(results, function(v, i) {
+			return _.reduce(v, function(acc, next) {
+				acc[next.name] = next.count;
+				return acc;
+			}, {index: i});
+		}),
+		flattened = _.flatten(results),
+		observableNames = _.keys(_.groupBy(flattened, 'name'));
 			
-			var numberOfLines = keys.length;
-			
-			var numberOfdifferentColours = Math.ceil(totalColours / (numberOfLines + 1));
-			var lines = _.range(0, numberOfLines);
-			var lineColours = _.map(lines, function(x) {
-				return numberOfdifferentColours * x;
-			});
-			var datas = _.map(keys, function(k) {
-				
-				return {
-					name: k,
-					data: _.pluck(nameGroups[k], 'count')
-				};
-			});
-			var dataWithColours = _.zip(datas,lineColours);
-			
-			return _.map(dataWithColours, function(m) {
-				var data = m[0], colour = m[1],
-					makeColourString = function(a) {
-						return "rgba(" + colour + "," + colour + "," + colour + "," + a + ")";
-					},
-					strokeColour = makeColourString(1);
-				return {
-					name: data.name,
-					data: data.data,
-					fillColor : makeColourString(0.5),
-					strokecolor : strokeColour,
-					pointcolor : strokeColour,
-					pointstrokecolor : "#fff"
-				};
-			});
-		}());
-		  		  
 	res.locals({
-        data: JSON.stringify({
-			labels: labels,
-			datasets: datasets
+        data: JSON.stringify({ 
+			data: mappedresults,
+			labels: _.map(observableNames, function(x) { console.log(x); return { valueField: x, name: x }; }) 
 		})
     });
 
