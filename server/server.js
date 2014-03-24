@@ -4,7 +4,6 @@ var express = require('express'),
 	results = [],
 	port = process.argv[2] || 3000;
 	
-app.set("jsonp callback", true);
 app.set('view engine', 'jshtml');
 app.engine('jshtml', require('jshtml-express'));
 app.use('/javascript', express.static(__dirname + '/javascript'));
