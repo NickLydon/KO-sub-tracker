@@ -3,10 +3,11 @@
 	window.ko_dependencies = function (sendResults) {
 
 		return function tracker(viewModel) {
-			var observables = [],
+			var serverId = null,	
+				observables = [],
 				maxDepth = 1000,
 				currentDepth = 0,
-				currentlyTracking = false,
+				currentlyTracking = true,
 				walkTheGraph = function (o, formPropertyName) {
 
 					var visited = '__ko__sub_tracker__';
@@ -56,30 +57,48 @@
 						if (getProperty(a) < getProperty(b)) return 1;
 						return 0;
 					};
+				},
+				
+				orderByCount = orderBy(function(a) { return a.count; }),
+				orderByName = orderBy(function(a) { return a.name; }),
+				
+				getCount = function (order) {
+					return observables.sort(order || orderByCount);
+				},
+				
+				postResultsUntilSuccessful = function() {
+					var results = getCount(),
+						tryUntilSuccessful = function() {
+							sendResults(
+							 	{
+									results: results,
+									id: serverId
+								},
+								function success(response) {
+									serverId = response.id;
+								}, 
+								tryUntilSuccessful);
+						};
+					
+					tryUntilSuccessful();
 				};
-
-
+				
 			walkTheGraph(viewModel, function identity(childProperty) { return childProperty; });
+			postResultsUntilSuccessful();
 
 			return {
-				getCount: function (order) {
-					return observables.sort(order || this.orderByCount);
-				},
+				getCount: getCount,
 				start: function () {
 					currentlyTracking = true;
 				},
 				stop: function () {
-					currentlyTracking = false;
-					
-					var results = this.getCount(),
-						tryUntilSuccessful = function() {
-							sendResults(results, function noOp() {}, tryUntilSuccessful);
-						};
-					
-					tryUntilSuccessful();
+					currentlyTracking = false;					
 				},
-				orderByCount: orderBy(function(a) { return a.count; }),
-				orderByName: orderBy(function(a) { return a.name; })
+				sendResults: function() {				
+					postResultsUntilSuccessful();
+				},
+				orderByCount: orderByCount,
+				orderByName: orderByName
 			};
 		};
 	}

@@ -3,14 +3,14 @@ function getSut(o) {
 	var sut = ko_dependencies(function() { 
 		
 	})(o);
-
-	sut.start();
 	
 	return sut;
 }
 
 function getSutWithReporting(o, reporting) {
-	var sut = ko_dependencies(reporting)(o);
+	var sut = ko_dependencies(function(report,successCallback,failureCallback) { 
+		reporting(report.results, successCallback, failureCallback);
+	})(o);
 
 	sut.start();
 	
@@ -34,6 +34,16 @@ test('should track observables', function() {
 	
 	equal(1, sut.getCount()[0].count);
 });
+
+test('should track observable arrays', function() {
+	var o = { o: ko.observableArray([]) },
+		sut = getSut(o);
+	 
+	o.o.push(1);
+	
+	equal(1, sut.getCount()[0].count);
+});
+
 
 test('should handle circular references', function() {
 	var o = { o: ko.observable() },
@@ -149,16 +159,20 @@ test('should access observable object properties', function() {
 
 test('should report results when stop is called', function() {
 	var o = { o: ko.observable({ internal: ko.observable() }) },
+		firstTime = true,
 		sut = getSutWithReporting(o, function(report) {
-			
-			equal(report.length, 2);		
-			equal(report[0].name, 'o().internal');
-			equal(report[0].count, 1);
+			if(firstTime) {
+				firstTime = false;
+			} else {
+				equal(report.length, 2);		
+				equal(report[0].name, 'o().internal');
+				equal(report[0].count, 1);
+			}
 		});
 		
-		o.o().internal.notifySubscribers('');
+	o.o().internal.notifySubscribers('');
 		
-		sut.stop();		
+	sut.sendResults();		
 });
 
 test('should try to report results until successful', function() {
@@ -166,15 +180,33 @@ test('should try to report results until successful', function() {
 		calledReport = 0,
 		expected = 3;
 		sut = getSutWithReporting(o, function(report, success, failure) {
-			calledReport++;
-			if(calledReport < expected) {
-				failure();
+			var firstTime = calledReport === 0;
+			
+			if(firstTime) {
+				calledReport++;
 			} else {
-				success();
+				calledReport++;
+
+				if(calledReport < expected) {
+					failure();
+				} else {
+					success({ id: 5 });
+				}
 			}
 		});
 				
-		sut.stop();		
-		
-		equal(calledReport, expected);
+	sut.sendResults();		
+	
+	equal(calledReport, expected);
+});
+
+test('should report results once observables have been subscribed to', function() {
+	var o = { o: ko.observable() },
+		sut = getSutWithReporting(o, function(report, success, failure) {
+			equal(report.length, 1);
+			equal(report[0].name, 'o');
+			equal(report[0].count, 0);
+		});
+				
+	expect(3);
 });

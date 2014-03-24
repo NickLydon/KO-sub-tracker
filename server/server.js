@@ -1,60 +1,10 @@
 var express = require('express'),
 	app = express(),
 	_ = require('underscore'),
-	results = [ 
-		[
-			[{
-				name: 'observable1',
-				count: 5
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}],
-			[{
-				name: 'observable1',
-				count: 6
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}],
-			[{
-				name: 'observable1',
-				count: 9
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}],
-			[{
-				name: 'observable1',
-				count: 11
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}],
-			[{
-				name: 'observable1',
-				count: 15
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}],
-			[{
-				name: 'observable1',
-				count: 30
-			},
-			{
-				name: 'observable2',
-				count: 5
-			}]
-		]
-	],
+	results = [],
 	port = process.argv[2] || 3000;
 	
+app.set("jsonp callback", true);
 app.set('view engine', 'jshtml');
 app.engine('jshtml', require('jshtml-express'));
 app.use('/javascript', express.static(__dirname + '/javascript'));
@@ -97,29 +47,24 @@ app.get('/', function(req, res){
 	}
 });
 
-app.post('/', function(req, res) {
-	var body = '';
-	req.on('data', function(c) { body += c; });
+app.get('/post', function(req, res) {
+	var message = req.query.results,
+		id = req.query.id;
 	
-	req.on('end', function () { 
-		var message = JSON.parse(body),
-			id = message.id;
-		
-		if(message.id) {
-		
-			if(results[message.id]) {
-				results[message.id].push(message.results);
-			} else {
-				results[message.id] = [ message.results ];			
-			}
-			
+	if(id) {
+	
+		if(results[id]) {
+			results[id].push(message);
 		} else {
-			id = results.length;
-			results[id] = [ message.results ];		
+			results[id] = [ message ];			
 		}
 		
-		res.end(JSON.stringify({ id: id }));
-	});
+	} else {
+		id = results.length;
+		results[id] = [ message ];		
+	}
+	
+	res.send(req.query.callback + '(' + JSON.stringify({ id: id }) + ')');	
 });
 
 var server = app.listen(port, function() {
