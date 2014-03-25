@@ -1,4 +1,7 @@
-var express = require('express'),
+var https = require('https'),
+	http = require('http'),
+	fs = require('fs'),
+	express = require('express'),
 	app = express(),
 	_ = require('underscore'),
 	results = [],
@@ -66,6 +69,11 @@ app.get('/post', function(req, res) {
 	res.send(req.query.callback + '(' + JSON.stringify({ id: id }) + ')');	
 });
 
-var server = app.listen(port, function() {
-    console.log('Listening on port %d', server.address().port);
-});
+var options = {
+    pfx: fs.readFileSync('cert.pfx'),
+	passphrase: 'password'
+};
+// Create an HTTP service.
+http.createServer(app).listen(port);
+// Create an HTTPS service identical to the HTTP service.
+https.createServer(options, app).listen(443);
