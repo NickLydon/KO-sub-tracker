@@ -75,12 +75,17 @@ test('should track observables multiple times', function() {
 
 test('should track computeds', function() {
 	var obs = ko.observable(false);
-		o = { o: ko.computed(function() { return obs(); }) },
+		o = { obs: ko.observable(false), o: ko.computed(function() { return obs(); }) },
 		sut = getSut(o);
 	 	
 	obs(!obs());
+	o.obs(!o.obs());
 	
-	equal(1, sut.getCount()[0].count);
+	equal(sut.getCount().length, 2);
+	equal(sut.getCount()[0].count, 1);
+	equal(sut.getCount()[0].name, "obs");
+	equal(sut.getCount()[1].count, 1);
+	equal(sut.getCount()[1].name, "o");
 });
 
 test('should give names of observables', function() {

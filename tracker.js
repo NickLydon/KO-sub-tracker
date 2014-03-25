@@ -16,35 +16,39 @@
 						currentDepth++;
 
 						for (var i in o) {
-							if (o.hasOwnProperty(i) && o[i] && ko.isObservable(o[i])) {
+							(function closure(o, i) {	
+								if (o.hasOwnProperty(i) && o[i] && (ko.isObservable(o[i])) || ko.isComputed(o[i])) {
+								
+									var subscriberToken = (function() {
+										return {
+											name: formPropertyName(i),
+											count: 0
+										};
+									}()),
+										latestObservableValue = o[i]();
 
-								var subscriberToken = {
-									name: formPropertyName(i),
-									count: 0
-								},
-									latestObservableValue = o[i]();
+									o[i].subscribe(function () {
+										if (currentlyTracking) {
+											subscriberToken.count++;
+										}
+									});
 
-								o[i].subscribe(function () {
-									if (currentlyTracking) {
-										subscriberToken.count++;
+									observables.push(subscriberToken);
+								
+									o[i][visited] = true;
+
+									if (latestObservableValue && !latestObservableValue[visited]) {
+										walkTheGraph(latestObservableValue, function (childProperty) { return formPropertyName(i) + '().' + childProperty; });
+										latestObservableValue[visited] = true;
 									}
-								});
-
-								observables.push(subscriberToken);
-
-								o[i][visited] = true;
-
-								if (latestObservableValue && !latestObservableValue[visited]) {
-									walkTheGraph(latestObservableValue, function (childProperty) { return formPropertyName(i) + '().' + childProperty; });
-									latestObservableValue[visited] = true;
 								}
-							}
 
-							if (!o[i][visited]) {
-								walkTheGraph(o[i], function (childProperty) { return formPropertyName(i) + '.' + childProperty; });
-							}
-
+								if (!o[i][visited]) {
+									walkTheGraph(o[i], function (childProperty) { return formPropertyName(i) + '.' + childProperty; });
+								}
+							}(o, i));
 						}
+						
 
 						o[visited] = true;
 					}
