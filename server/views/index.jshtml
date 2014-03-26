@@ -1,8 +1,8 @@
 <html>
 	<head>
-		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> 
-		<script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/globalize/0.1.1/globalize.min.js"></script>
-		<script type="text/javascript" src="//cdn3.devexpress.com/jslib/13.2.8/js/dx.chartjs.js"></script>
+		<script type="text/javascript" src="javascript/jquery.min.js"></script> 
+		<script type="text/javascript" src="javascript/globalize.min.js"></script>
+		<script type="text/javascript" src="javascript/dx.chartjs.js"></script>
 	</head>
 
 	<body>
