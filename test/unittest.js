@@ -1,4 +1,3 @@
-
 function getSut(o) {
 	var sut = ko_dependencies(function() { 
 		
