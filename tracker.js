@@ -1,13 +1,14 @@
 (function(window, ko, undefined) {
 
-	window.ko_dependencies = function (sendResults) {
-
+	window.ko_dependencies = function (sendResults, manuallySendResults) {
+	
 		return function tracker(viewModel) {
 			var serverId = null,	
 				observables = [],
 				maxDepth = 1000,
 				currentDepth = 0,
 				currentlyTracking = true,
+				lastUpdate = ko.observable().extend({ throttle: 1000 }),
 				walkTheGraph = function (o, formPropertyName) {
 
 					var visited = '__ko__sub_tracker__';
@@ -30,6 +31,9 @@
 									o[i].subscribe(function () {
 										if (currentlyTracking) {
 											subscriberToken.count++;
+											if(!manuallySendResults) {
+												lastUpdate.notifySubscribers('');
+											}
 										}
 									});
 
@@ -43,7 +47,7 @@
 									}
 								}
 
-								if (!o[i][visited]) {
+								if (o[i] && !o[i][visited]) {
 									walkTheGraph(o[i], function (childProperty) { return formPropertyName(i) + '.' + childProperty; });
 								}
 							}(o, i));
@@ -90,6 +94,8 @@
 			walkTheGraph(viewModel, function identity(childProperty) { return childProperty; });
 			postResultsUntilSuccessful();
 
+			lastUpdate.subscribe(postResultsUntilSuccessful);
+			
 			return {
 				getCount: getCount,
 				start: function () {

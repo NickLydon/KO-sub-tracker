@@ -16,7 +16,6 @@ function getSutWithReporting(o, reporting) {
 	return sut;
 }
 
-
 test('should start at 0', function() {
 	var sut = getSut({
 		
@@ -82,9 +81,9 @@ test('should track computeds', function() {
 	
 	equal(sut.getCount().length, 2);
 	equal(sut.getCount()[0].count, 1);
-	equal(sut.getCount()[0].name, "obs");
+	equal(sut.getCount()[0].name, "o");
 	equal(sut.getCount()[1].count, 1);
-	equal(sut.getCount()[1].name, "o");
+	equal(sut.getCount()[1].name, "obs");
 });
 
 test('should give names of observables', function() {
