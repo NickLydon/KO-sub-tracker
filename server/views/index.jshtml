@@ -6,38 +6,45 @@
 	</head>
 
 	<body>
-		<div id="chart"></div>
+		<div id="charts"></div>
+		
 		
 		<script type="text/javascript">
 			var dataSource = @locals.data
-				, labels = dataSource.labels
-				, data = dataSource.data;
+				;
 			
-			$("#chart").dxChart({
-				dataSource: data,
-				commonSeriesSettings: {
-					argumentField: "index"
-				},
-				series: labels,
-				argumentAxis:{
-					grid:{
-						visible: true
-					}
-				},
-				tooltip:{
-					enabled: true
-				},
-				title: "Observable notifications over time",
-				legend: {
-					verticalAlignment: "bottom",
-					horizontalAlignment: "center"
-				},
-				commonPaneSettings: {
-					border:{
-						visible: true,
-						right: false
-					}       
-				}
+			$(function() {
+				dataSource.forEach(function(i) {
+					var div = $('<div></div>');
+						
+						$('#charts').append(div);
+						div.dxChart({
+							dataSource: i.data,
+							commonSeriesSettings: {
+								argumentField: "index"
+							},
+							series: i.labels,
+							argumentAxis:{
+								grid:{
+									visible: true
+								}
+							},
+							tooltip:{
+								enabled: true
+							},
+							title: "Observable notifications over time",
+							legend: {
+								verticalAlignment: "bottom",
+								horizontalAlignment: "center"
+							},
+							commonPaneSettings: {
+								border:{
+									visible: true,
+									right: false
+								}       
+							}
+						});
+				});
 			});
 		</script>
 	</body>

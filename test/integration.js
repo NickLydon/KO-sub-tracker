@@ -3,11 +3,17 @@ var viewModel = (function() {
 		arr: ko.observableArray([]),
 		button: function() {
 			this.arr.push(this.arr().length);
-		}
+		},
+		comp: []
+	},
+	addToComp = function() {
+		vm.comp.push(ko.computed(function() {
+			return this.arr().length + " many items in array";
+		}, vm));
 	};
-	vm.comp = ko.computed(function() {
-		return this.arr().length + " many items in array";
-	}, vm);
+	for(var i = 0; i < 40; i ++) {
+		addToComp();
+	}
 	
 	return vm;
 }());
