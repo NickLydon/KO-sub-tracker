@@ -8,7 +8,8 @@
 				maxDepth = 1000,
 				currentDepth = 0,
 				currentlyTracking = true,
-				lastUpdate = ko.observable().extend({ throttle: 1000 }),
+				lastUpdate = ko.observable(),
+				lastUpdateWatcher = ko.computed(lastUpdate).extend({ throttle: 1000 }),
 				walkTheGraph = function (o, formPropertyName) {
 
 					var visited = '__ko__sub_tracker__';
@@ -94,7 +95,7 @@
 			walkTheGraph(viewModel, function identity(childProperty) { return childProperty; });
 			postResultsUntilSuccessful();
 
-			lastUpdate.subscribe(postResultsUntilSuccessful);
+			lastUpdateWatcher.subscribe(postResultsUntilSuccessful);
 			
 			return {
 				getCount: getCount,

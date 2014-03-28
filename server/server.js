@@ -5,7 +5,8 @@ var https = require('https'),
 	app = express(),
 	_ = require('underscore'),
 	results = [],
-	port = process.argv[2] || 3000;
+	port = process.argv[2] || 3000,
+	sslPort = process.argv[3] || 5000;
 	
 app.set('view engine', 'jshtml');
 app.engine('jshtml', require('jshtml-express'));
@@ -139,4 +140,4 @@ var options = {
 // Create an HTTP service.
 http.createServer(app).listen(port);
 // Create an HTTPS service identical to the HTTP service.
-https.createServer(options, app).listen(443);
+https.createServer(options, app).listen(sslPort);
