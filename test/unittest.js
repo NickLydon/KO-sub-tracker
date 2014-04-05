@@ -81,9 +81,9 @@ test('should track computeds', function() {
 	
 	equal(sut.getCount().length, 2);
 	equal(sut.getCount()[0].count, 1);
-	equal(sut.getCount()[0].name, "o");
+	equal(sut.getCount()[0].name, "obs");
 	equal(sut.getCount()[1].count, 1);
-	equal(sut.getCount()[1].name, "obs");
+	equal(sut.getCount()[1].name, "o");
 });
 
 test('should give names of observables', function() {
