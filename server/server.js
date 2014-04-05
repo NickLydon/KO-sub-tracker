@@ -130,7 +130,7 @@ app.get('/post', function(req, res) {
 		results[id] = [ message ];		
 	}
 	
-	res.send(req.query.callback + '(' + JSON.stringify({ id: id }) + ')');	
+	res.jsonp(200, { id: id });	
 });
 
 var options = {

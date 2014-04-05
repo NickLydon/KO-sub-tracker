@@ -19,7 +19,7 @@ var viewModel = (function() {
 }());
 
 var tracker = ko_dependencies(jQueryReporter(3000))(viewModel);
-tracker.start();
+
 $(function() {
 	ko.applyBindings(viewModel);
 });
