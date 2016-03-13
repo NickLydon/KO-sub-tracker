@@ -1,0 +1,27 @@
+{
+  "name": "ko-sub-tracker",
+  "version": "1.0.0",
+  "description": "KO-sub-tracker ==============",
+  "main": "server/server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NickLydon/KO-sub-tracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NickLydon/KO-sub-tracker/issues"
+  },
+  "homepage": "https://github.com/NickLydon/KO-sub-tracker#readme",
+  "dependencies": {
+    "express": "^4.13.4",
+    "jshtml-express": "0.0.1",
+    "underscore": "^1.8.3"
+  }
+}

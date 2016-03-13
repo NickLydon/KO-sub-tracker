@@ -96,18 +96,18 @@ app.get('/', function(req, res){
 		};
 		
 	if(id) {
-		res.locals({
+		res.locals = {
 			data: JSON.stringify(_.map(orderedByCount(results[id]), formatResultsForGraph))
-		});
+		};
 
 		res.render('index');
 		
 	} else {
-		res.locals({
+		res.locals = {
 			data: _.map(_.keys(results), function(id) {
 				return '/?id=' + id;
 			})
-		});
+		};
 	
 		res.render('links');
 	}
@@ -134,10 +134,13 @@ app.get('/post', function(req, res) {
 });
 
 var options = {
-    pfx: fs.readFileSync('cert.pfx'),
+    pfx: fs.readFileSync('./server/cert.pfx'),
 	passphrase: 'password'
 };
 // Create an HTTP service.
 http.createServer(app).listen(port);
 // Create an HTTPS service identical to the HTTP service.
 https.createServer(options, app).listen(sslPort);
+
+console.log('http://localhost:' + port);
+console.log('https://localhost:' + sslPort);
